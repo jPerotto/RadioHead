@@ -23,12 +23,13 @@ PROGMEM static const RH_RF95::ModemConfig MODEM_CONFIG_TABLE[] =
     
 };
 
-RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, RHGenericSPI& spi)
+RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t resetPin, RHGenericSPI& spi)
     :
     RHSPIDriver(slaveSelectPin, spi),
     _rxBufValid(0)
 {
     _interruptPin = interruptPin;
+    _resetPin = resetPin;
     _myInterruptIndex = 0xff; // Not allocated yet
 }
 
@@ -64,6 +65,8 @@ bool RH_RF95::init()
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
     // On all other platforms, its innocuous, belt and braces
     pinMode(_interruptPin, INPUT); 
+    pinMode(_resetPin, OUTPUT);
+    powerOnReset();
 
     // Set up interrupt handler
     // Since there are a limited number of interrupt glue functions isr*() available,
@@ -116,6 +119,13 @@ bool RH_RF95::init()
     return true;
 }
 
+void RH_RF95::powerOnReset()
+{
+    digitalWrite(_resetPin, LOW);
+    delay(10);
+    digitalWrite(_resetPin, HIGH);
+    delay(20);
+}
 // C++ level interrupt handler for this instance
 // LORA is unusual in that it has several interrupt lines, and not a single, combined one.
 // On MiniWirelessLoRa, only one of the several interrupt lines (DI0) from the RFM95 is usefuly 
