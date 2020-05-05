@@ -35,6 +35,8 @@ RH_RF95::RH_RF95(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t resetPin,
 
 bool RH_RF95::init()
 {
+    pinMode(_resetPin, OUTPUT);
+    powerOnReset();
     if (!RHSPIDriver::init())
 	return false;
 
@@ -65,8 +67,6 @@ bool RH_RF95::init()
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
     // On all other platforms, its innocuous, belt and braces
     pinMode(_interruptPin, INPUT); 
-    pinMode(_resetPin, OUTPUT);
-    powerOnReset();
 
     // Set up interrupt handler
     // Since there are a limited number of interrupt glue functions isr*() available,
