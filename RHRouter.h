@@ -193,6 +193,10 @@ public:
     /// \param [in] max_hops The new value for max_hops
     void setMaxHops(uint8_t max_hops);
 
+    /// set the max_routing to the given value
+    /// This controls the maximum number of routing, so you can expand the number of nodes
+    void setMaxRouting(uint8_t max_routing);
+
     /// Adds a route to the local routing table, or updates it if already present.
     /// If there is not enough room the oldest (first) route will be deleted by calling retireOldestRoute().
     /// \param [in] dest The destination node address. RH_BROADCAST_ADDRESS is permitted.
@@ -321,7 +325,10 @@ protected:
     /// The maximum number of hops permitted in routed messages.
     /// If a routed message would exceed this number of hops it is dropped and ignored.
     uint8_t              _max_hops;
-    
+
+    // The maximum number of routing table permitted in router
+    uint8_t              _max_routing;
+
     /// Flag to set if packets are forwarded or not
     bool _isa_router;
 
@@ -331,7 +338,7 @@ private:
     static RoutedMessage _tmpMessage;
 
     /// Local routing table
-    RoutingTableEntry    _routes[RH_ROUTING_TABLE_SIZE];
+    RoutingTableEntry    *_routes;
 };
 
 /// @example rf22_router_client.pde
