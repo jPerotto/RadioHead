@@ -1426,6 +1426,8 @@ these examples and explanations and extend them to suit your needs.
  #define RH_HAVE_HARDWARE_SPI
  #define RH_HAVE_SERIAL
  #define RH_MISSING_SPIUSINGINTERRUPT
+ // You can enable MUTEX to protect critical sections for multithreading						   
+ // #define RH_USE_MUTEX
 
  #elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS) // Mongoose OS platform
   #include <mgos.h>
@@ -1592,6 +1594,10 @@ these examples and explanations and extend them to suit your needs.
 // See hardware/esp8266/2.0.0/cores/esp8266/Arduino.h
  #define ATOMIC_BLOCK_START { uint32_t __savedPS = xt_rsil(15);
  #define ATOMIC_BLOCK_END xt_wsr_ps(__savedPS);}
+#elif (RH_PLATFORM == RH_PLATFORM_ESP32)
+// jPerotto see hardware/esp32/1.0.4/tools/sdk/include/esp32/xtensa/xruntime.h
+ #define ATOMIC_BLOCK_START uint32_t volatile register ilevel = XTOS_DISABLE_ALL_INTERRUPTS;
+ #define ATOMIC_BLOCK_END XTOS_RESTORE_INTLEVEL(ilevel);
 #else 
  // TO BE DONE:
  #define ATOMIC_BLOCK_START
@@ -1606,6 +1612,9 @@ these examples and explanations and extend them to suit your needs.
  #define YIELD yield();
 #elif (RH_PLATFORM == RH_PLATFORM_ESP8266)
 // ESP8266 also has it
+ #define YIELD yield();
+#elif (RH_PLATFORM == RH_PLATFORM_ESP32)
+// ESP32 also has it
  #define YIELD yield();
 #elif (RH_PLATFORM == RH_PLATFORM_STM32L0)
  #define YIELD yield();
@@ -1723,16 +1732,17 @@ these examples and explanations and extend them to suit your needs.
 
 // Some platforms need a mutex for multihreaded case
 #ifdef RH_USE_MUTEX
- #include <pthread.h>
- #define RH_DECLARE_MUTEX(X) pthread_mutex_t X;						   
- #define RH_MUTEX_INIT(X) pthread_mutex_init(&X, NULL)
- #define RH_MUTEX_LOCK(X) pthread_mutex_lock(&X)
- #define RH_MUTEX_UNLOCK(X) pthread_mutex_unlock(&X)						   
+// implemented by jPerotto from use freertos
+#include <tools/freertos/semphr.h>
+#define RH_DECLARE_MUTEX(RH_Mutex) RH_Mutex = new SemaphoreHandle_t; RH_Mutex = xSemaphoreCreateMutex()
+#define RH_MUTEX_INIT(RH_Mutex) RH_Mutex
+#define RH_MUTEX_LOCK(RH_Mutex) xSemaphoreTake(RH_Mutex, portMAX_DELAY)
+#define RH_MUTEX_UNLOCK(RH_Mutex) xSemaphoreGive(RH_Mutex)
 #else
- #define RH_DECLARE_MUTEX(X)
- #define RH_MUTEX_INIT(X)
- #define RH_MUTEX_LOCK(X)
- #define RH_MUTEX_UNLOCK(X)
+ #define RH_DECLARE_MUTEX(RH_Mutex)
+ #define RH_MUTEX_INIT(RH_Mutex)
+ #define RH_MUTEX_LOCK(RH_Mutex)
+ #define RH_MUTEX_UNLOCK(RH_Mutex)
 #endif
 
 // This is the address that indicates a broadcast

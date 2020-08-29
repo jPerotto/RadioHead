@@ -21,6 +21,8 @@ RHRouter::RHRouter(RHGenericDriver& driver, uint8_t thisAddress)
     : RHReliableDatagram(driver, thisAddress)
 {
     _max_hops = RH_DEFAULT_MAX_HOPS;
+	_max_routing = RH_ROUTING_TABLE_SIZE;
+	_routes = new RoutingTableEntry[_max_routing]();
     _isa_router = true;
     clearRoutingTable();
 }
@@ -32,6 +34,7 @@ bool RHRouter::init()
     bool ret = RHReliableDatagram::init();
     if (ret)
 	_max_hops = RH_DEFAULT_MAX_HOPS;
+	_max_routing = RH_ROUTING_TABLE_SIZE;
     return ret;
 }
 
@@ -39,6 +42,19 @@ bool RHRouter::init()
 void RHRouter::setMaxHops(uint8_t max_hops)
 {
     _max_hops = max_hops;
+}
+
+////////////////////////////////////////////////////////////////////
+void RHRouter::setMaxRouting(uint8_t max_routing)
+{
+	RoutingTableEntry *temp = new RoutingTableEntry[max_routing]();
+	for(uint8_t routing=0; routing < _max_routing; _max_routing++)
+	{
+		temp[routing] = _routes[routing];
+	}
+	_max_routing = max_routing;
+	delete [] _routes;
+	_routes = temp;
 }
 
 ////////////////////////////////////////////////////////////////////
