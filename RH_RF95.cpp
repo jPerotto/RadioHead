@@ -167,7 +167,7 @@ bool RH_RF95::init()
 // We use this to get RxDone and TxDone interrupts
 void RH_RF95::handleInterrupt()
 {
-    RH_MUTEX_LOCK(_RH_Mutex); // Multithreading support
+    RH_MUTEX_LOCK_ISR(_RH_Mutex, pdFALSE); // Multithreading and multicores/multitask support
     
     // we need the RF95 IRQ to be level triggered, or we ……have slim chance of missing events
     // https://github.com/geeksville/Meshtastic-esp32/commit/78470ed3f59f5c84fbd1325bcff1fd95b2b20183
@@ -264,7 +264,7 @@ void RH_RF95::handleInterrupt()
     // clear the radio's interrupt flag. So we do it twice. Why?
 //    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
 //    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
-    RH_MUTEX_UNLOCK(_RH_Mutex); 
+    RH_MUTEX_UNLOCK_ISR(_RH_Mutex, pdFALSE); 
 }
 
 // These are low level functions that call the interrupt handler for the correct
